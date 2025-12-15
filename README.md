@@ -2,6 +2,10 @@
 
 A Python prototype for semi-automatic step creation (Dance-Single mode) for StepMania, Project OutFox, and similar programs.
 
+
+https://github.com/user-attachments/assets/2104635c-5360-45b3-b809-677a149d0cf4
+
+
 ---
 
 ## ⚠️ DISCLAIMER (READ BEFORE USE)
@@ -125,3 +129,4 @@ This project is developed entirely in my spare time with the goal of making char
 If the tool has saved you time and you're enjoying the songs you've created, consider buying me a (virtual) coffee to support the development of future updates!
 
 [![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/C0C21QBS11)
+
