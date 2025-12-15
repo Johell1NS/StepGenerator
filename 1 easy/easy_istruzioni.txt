@@ -1,0 +1,33 @@
+# Istruzioni Generazione Livello EASY (1 easy)
+
+Questo file descrive le regole utilizzate per generare le chart di difficoltà "Easy".
+Ogni script python in questa cartella applica una regola specifica.
+
+## 1. Fondamenta (easy_4th.py)
+- **Scopo**: Creare la struttura base ritmica (frecce rosse).
+- **Logica**:
+  - **Downbeats (1°, 2°, 3°, 4° movimento)**: Sempre presente una nota.
+  - **Off-beats**: Inserisce una nota se l'energia audio supera la soglia `0.6 * media_locale`.
+  - **Vincoli**: Massimo 2 pause consecutive per mantenere il flusso.
+
+## 2. Espansione Risoluzione (easy_8th.py)
+- **Scopo**: Aumentare la risoluzione della chart a 8th note (frecce blu) senza aggiungere complessità.
+- **Logica**:
+  - Espande semplicemente la griglia inserendo righe vuote ('0000') tra i quarti.
+  - Non aggiunge nuove note, mantiene la difficoltà bassa.
+
+## 3. Salti (easy_jump.py)
+- **Scopo**: Aggiungere enfasi sui colpi più forti.
+- **Logica**:
+  - Analizza l'energia dei downbeat.
+  - Converte una nota singola in un salto (doppia nota) SOLO se l'energia è nel **top 10%** dei downbeat.
+  - Riservato ai momenti di picco assoluto.
+
+## 4. Note Sostenute (easy_hold.py)
+- **Scopo**: Seguire le note lunghe nella musica.
+- **Logica**:
+  - Identifica segmenti audio lunghi (> 1 secondo).
+  - **Smart Conflict Resolution**:
+    - Se l'energia è BASSA: Privilegia le Hold (cancella tap in conflitto).
+    - Se l'energia è ALTA: Privilegia i Tap (accorcia le Hold).
+  - **Limite**: Massimo 2 input simultanei (es. 1 Hold + 1 Tap, o 2 Hold).

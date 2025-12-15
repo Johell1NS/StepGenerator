@@ -1,0 +1,35 @@
+# Istruzioni Generazione Livello HARD (3 hard)
+
+Questo file descrive le regole utilizzate per generare le chart di difficoltà "Hard".
+
+## 1. Fondamenta (hard_4th.py)
+- **Scopo**: Struttura ritmica densa.
+- **Logica**:
+  - **Downbeats**: Sempre presente una nota.
+  - **Off-beats**: Nota presente se energia > `0.7 * media_locale` (Soglia ridotta per maggiore densità).
+  - **Pause**: Massimo 2 pause consecutive.
+
+## 2. Ritmo Avanzato (hard_8th.py)
+- **Scopo**: Aggiungere frecce blu (8th notes) per creare stream e ritmi complessi.
+- **Logica**:
+  - **Target Densità**: ~50% (Rapporto Blu/Rosse).
+  - **Pattern**:
+    - Permette stream più lunghi (fino a 7 note consecutive).
+    - Rompe i "drought" (assenze di note blu) più frequentemente (ogni 4 beat).
+  - **Bassi**: Soglia controllo bassi ridotta per permettere note anche su bassi meno pronunciati.
+
+## 3. Energia Massima & Salti (hard_jump.py)
+- **Scopo**: Enfasi aggressiva sui picchi.
+- **Logica**:
+  - **Downbeat**: Salto se energia è nel **top 60%** dei downbeat.
+  - **Accenti (Off-beat)**: Salto se energia > **1.3x media globale**.
+  - **Bassi**: Soglia bassi ridotta.
+
+## 4. Note Sostenute (hard_hold.py)
+- **Scopo**: Seguire strumenti o voci lunghe.
+- **Logica**:
+  - Identifica segmenti > 1.0s.
+  - **Smart Conflict**:
+    - Bassa Energia (<0.6): Hold vince su Tap.
+    - Alta Energia (>0.6): Tap vince su Hold.
+  - **Limite**: Max 2 input simultanei (standard pad).

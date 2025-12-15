@@ -1,0 +1,38 @@
+# Istruzioni Generazione Livello MEDIUM (2 medium)
+
+Questo file descrive le regole utilizzate per generare le chart di difficoltà "Medium".
+
+## 1. Fondamenta (medium_4th.py)
+- **Scopo**: Struttura ritmica principale (frecce rosse).
+- **Logica**:
+  - **Downbeats**: Sempre presente una nota.
+  - **Off-beats**: Nota presente se energia > `0.8 * media_locale` (Standard).
+  - **Pause**: Massimo 2 pause consecutive.
+  - Genera una chart etichettata "Medium".
+
+## 2. Ritmo & Syncopation (medium_8th.py)
+- **Scopo**: Aggiungere frecce blu (8th notes) per arricchire il ritmo.
+- **Logica**:
+  - **Target Densità**: ~30% (Rapporto Blu/Rosse).
+  - **Auto-Tuner**: Regola la sensibilità per raggiungere il target.
+  - **Pattern**: Supporta "Bridge" (note di passaggio) e "Syncopation" (note in levare).
+  - **Regole**:
+    - Niente 8th note adiacenti ai salti (Jump).
+    - Rompe le lunghe sequenze (stream) troppo dense.
+    - Controlla i bassi (Low Freq RMS) per evitare note su parti "vuote".
+
+## 3. Energia & Salti (medium_jump.py)
+- **Scopo**: Enfasi sui picchi energetici.
+- **Logica**:
+  - **Downbeat**: Salto se energia è nel **top 40%** dei downbeat.
+  - **Accenti (Off-beat)**: Salto se energia > **1.5x media globale**.
+  - **Bassi**: Richiede presenza di bassi significativi.
+
+## 4. Note Sostenute (medium_hold.py)
+- **Scopo**: Seguire strumenti o voci lunghe.
+- **Logica**:
+  - Identifica segmenti > 1.0s.
+  - **Smart Conflict**:
+    - Bassa Energia (<0.6): Hold vince su Tap.
+    - Alta Energia (>0.6): Tap vince su Hold.
+  - **Limite**: Max 2 input simultanei.

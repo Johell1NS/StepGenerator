@@ -1,0 +1,5 @@
+This project is developed entirely in my spare time with the goal of making chart creation accessible to everyone. It is and will always remain free and open source.
+
+If the tool has saved you time and you're enjoying the songs you've created, consider buying me a (virtual) coffee to support the development of future updates!
+
+https://ko-fi.com/stepgenerator
