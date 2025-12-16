@@ -45,6 +45,16 @@ Only after saving the initial `.sm` file with the correct tempo can we launch au
 
 ---
 
+### 🎶 Example Song Included!
+
+For your convenience, the `songs` folder includes an example simfile: **"Walk On Water - Southby, Emily J.sm"**, along with its audio and graphics.
+
+This song is from NoCopyrightSounds (NCS), a great source for royalty-free music perfect for testing.
+
+You can immediately see how the generated charts look and play. Feel free to use this as a reference or replace the MP3 with your own tunes to create new simfiles!
+
+---
+
 ## ⚙️ Environment Preparation
 
 These actions need to be performed **only the first time**.
@@ -129,4 +139,5 @@ This project is developed entirely in my spare time with the goal of making char
 If the tool has saved you time and you're enjoying the songs you've created, consider buying me a (virtual) coffee to support the development of future updates!
 
 [![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/C0C21QBS11)
+
 
