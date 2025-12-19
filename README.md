@@ -118,6 +118,8 @@ Allows you to change the density of a specific level.
 4. Choose the difficulty level you want to adjust.
 5. Decide whether to **increase** or **decrease** the difficulty (the algorithm will add or remove **20%** of the arrows).
 
+---
+
 ## 🔮 Future Updates
 
 I have many ideas in mind to make the algorithm even smarter and generate charts that are increasingly dynamic and fun to play.
@@ -142,6 +144,7 @@ This project is developed entirely in my spare time with the goal of making char
 If the tool has saved you time and you're enjoying the songs you've created, consider buying me a (virtual) coffee to support the development of future updates!
 
 [![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/C0C21QBS11)
+
 
 
 
