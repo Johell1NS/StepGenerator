@@ -2,9 +2,7 @@
 
 A Python prototype for semi-automatic step creation (Dance-Single mode) for StepMania, Project OutFox, and similar programs.
 
-
 https://github.com/user-attachments/assets/2104635c-5360-45b3-b809-677a149d0cf4
-
 
 ---
 
@@ -42,18 +40,6 @@ Currently, nothing exists that gives 100% correct results. Algorithms often fail
 To address this problem, the only truly efficient solution was to integrate ArrowVortex into the process.
 Using ArrowVortex, we can find the exact BPM (including variations and rests) and indicate the correct tempo of the song.
 Only after saving the initial `.sm` file with the correct tempo can we launch automatic arrow generation.
-
----
-
-### 🎶 Example Song Included!
-
-For your convenience, the `songs` folder includes an example simfile: **"Walk On Water - Southby, Emily J.sm"**, along with its audio and graphics.
-
-This song is from NoCopyrightSounds (NCS), a great source for royalty-free music perfect for testing.
-
-You can immediately see how the generated charts look and play. Feel free to use this as a reference or replace the MP3 with your own tunes to create new simfiles!
-
----
 
 ## ⚙️ Environment Preparation
 
@@ -132,6 +118,23 @@ Allows you to change the density of a specific level.
 4. Choose the difficulty level you want to adjust.
 5. Decide whether to **increase** or **decrease** the difficulty (the algorithm will add or remove **20%** of the arrows).
 
+## 🔮 Future Updates
+
+I have many ideas in mind to make the algorithm even smarter and generate charts that are increasingly dynamic and fun to play.
+
+However, implementing these advanced features is complex and requires significant development time. Therefore, **the future roadmap will depend heavily on the interest the community shows in the project.**
+
+If you like the tool and want to see it grow: use it, leave a star ⭐ on the repository, or share your feedback!
+In the meantime, I hope you find this first version useful and fun.
+
+### 🎶 Example Song Included!
+
+For your convenience, the `songs` folder includes an example simfile: **"Walk On Water - Southby, Emily J.sm"**, along with its audio and graphics.
+
+This song is from NoCopyrightSounds (NCS), a great source for royalty-free music perfect for testing.
+
+You can immediately see how the generated charts look and play. Feel free to use this as a reference or replace the MP3 with your own tunes to create new simfiles!
+
 ## ☕ Support me
 
 This project is developed entirely in my spare time with the goal of making chart creation accessible to everyone. It is and will always remain free and open source.
@@ -139,5 +142,6 @@ This project is developed entirely in my spare time with the goal of making char
 If the tool has saved you time and you're enjoying the songs you've created, consider buying me a (virtual) coffee to support the development of future updates!
 
 [![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/C0C21QBS11)
+
 
 
