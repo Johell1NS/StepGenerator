@@ -83,13 +83,13 @@ Proceed as follows:
 
 **Note:** Once you've saved the file with the correct tempo, you're done. **There's no need to create the arrows manually**; just save the blank file with the correct timing.
 
-### 4. Generation
+### 3. Generation
 
 Return to the `menu.bat` window (which you opened in step 2) and press **ENTER**.
 The system will automatically generate the steps for the difficulty levels (currently the most tested is *Medium*).
 The graphics/backgrounds will also be automatically searched for.
 
-### 5. Installation
+### 4. Installation
 
 You will find the complete song folder in `songs`.
 Place this folder in the `Songs` directory of your game (StepMania or Project OutFox).
@@ -142,6 +142,7 @@ This project is developed entirely in my spare time with the goal of making char
 If the tool has saved you time and you're enjoying the songs you've created, consider buying me a (virtual) coffee to support the development of future updates!
 
 [![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/C0C21QBS11)
+
 
 
 
