@@ -76,7 +76,7 @@ Correct Examples:
 
 ### 2. Process Startup and Timing (ArrowVortex)
 
-Open the `menu.bat` file in the project root and press the **1** key.
+Run the `menu.bat` file located in the project root. Then, press **1** to select a local file, or **paste a YouTube URL** (as described above).
 
 **ArrowVortex** will open automatically, already configured with the "Beat tick" feature enabled and the **ADJUST TEMPO** and **ADJUST SYNC** windows open.
 
@@ -151,6 +151,7 @@ This project is developed entirely in my spare time with the goal of making char
 If the tool has saved you time and you're enjoying the songs you've created, consider buying me a (virtual) coffee to support the development of future updates!
 
 [![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/C0C21QBS11)
+
 
 
 
