@@ -61,11 +61,11 @@ These actions need to be performed **only the first time**.
 
 You have two ways to provide the song:
 
-Option A: Local MP3 File
+**Option A**: Local MP3 File
 Place your `.mp3` file inside the project's `songs` folder.
 Important: Rename the file strictly following this format: `SongTitle - ArtistName.mp3`
 
-Option B: YouTube URL
+**Option B**: YouTube URL
 Alternatively, you can paste a YouTube video URL directly into the tool. The software will then ask you to manually type the Song Title and Artist Name.
 
 ⚠️ CAUTION: In both cases, do not use special characters (such as apostrophes `'`, accented letters `à,è`, emojis, etc.). Keep the text simple.
@@ -151,6 +151,7 @@ This project is developed entirely in my spare time with the goal of making char
 If the tool has saved you time and you're enjoying the songs you've created, consider buying me a (virtual) coffee to support the development of future updates!
 
 [![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/C0C21QBS11)
+
 
 
 
