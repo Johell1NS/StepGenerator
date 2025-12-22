@@ -76,7 +76,10 @@ def get_energy_at_beat(beat_idx, analysis_data):
 
 class StepModifier:
     def __init__(self):
-        self.songs_root = os.path.join(os.getcwd(), "songs")
+        # Determine root dir relative to this script (src/modifica_steps.py -> root)
+        src_dir = os.path.dirname(os.path.abspath(__file__))
+        root_dir = os.path.dirname(src_dir)
+        self.songs_root = os.path.join(root_dir, "songs")
 
     def find_valid_songs(self):
         """

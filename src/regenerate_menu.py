@@ -4,7 +4,9 @@ import glob
 import shutil
 import subprocess
 
-SONGS_DIR = "songs"
+SRC_DIR = os.path.dirname(os.path.abspath(__file__))
+ROOT_DIR = os.path.dirname(SRC_DIR)
+SONGS_DIR = os.path.join(ROOT_DIR, "songs")
 
 def find_regeneratable_songs():
     """
@@ -75,7 +77,8 @@ def main():
     
     # 2. Run StepMania Generator
     # Command: python stepmania_generator.py --from-sm "path/to/sm" --pipeline --skip-analysis
-    cmd = [sys.executable, "stepmania_generator.py", "--from-sm", selected['sm_path'], "--pipeline", "--skip-analysis"]
+    stepmania_script = os.path.join(SRC_DIR, "stepmania_generator.py")
+    cmd = [sys.executable, stepmania_script, "--from-sm", selected['sm_path'], "--pipeline", "--skip-analysis"]
     
     try:
         subprocess.run(cmd, check=True)

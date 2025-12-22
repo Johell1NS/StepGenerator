@@ -22,7 +22,9 @@ from pathlib import Path
 import shutil
 
 # Configurazione
-SONGS_FOLDER = "songs"
+SRC_DIR = os.path.dirname(os.path.abspath(__file__))
+ROOT_DIR = os.path.dirname(SRC_DIR)
+SONGS_FOLDER = os.path.join(ROOT_DIR, "songs")
 TIMING_DATA_FILE = "timing_data.json"
 
 def load_timing_data():
@@ -636,14 +638,45 @@ def main():
         
         # Trova MP3
         mp3_filename = sm_data['music']
-        mp3_path = os.path.join(SONGS_FOLDER, mp3_filename)
-        if not os.path.exists(mp3_path):
-            print(f"⚠️  File audio '{mp3_filename}' non trovato in {SONGS_FOLDER}. Uso default o cerco...")
-            # Fallback: cerca un mp3 qualsiasi se quello nel file non esiste?
-            # Meglio avvisare e basta per ora.
         
+        # STRATEGIA DI RICERCA MP3 (Ispirata al Backup 11 + Supporto Sottocartelle)
+        
+        # 1. Cerca nella cartella songs root (Come Backup 11)
+        path_backup_11 = os.path.join(SONGS_FOLDER, mp3_filename)
+        
+        # 2. Cerca nella stessa cartella del file .sm (Per le nuove sottocartelle)
+        sm_dir = os.path.dirname(sm_path)
+        path_local = os.path.join(sm_dir, mp3_filename)
+        
+        mp3_path = None
+        
+        if os.path.exists(path_backup_11):
+            mp3_path = path_backup_11
+            print(f"✅ File audio trovato (Legacy): {mp3_path}")
+        elif os.path.exists(path_local):
+            mp3_path = path_local
+            print(f"✅ File audio trovato (Locale): {mp3_path}")
+        else:
+            print(f"⚠️  File audio '{mp3_filename}' non trovato nelle posizioni standard. Cerco ricorsivamente...")
+            # 3. Ricerca ricorsiva in songs
+            found = False
+            for root, dirs, files in os.walk(SONGS_FOLDER):
+                if mp3_filename in files:
+                    mp3_path = os.path.join(root, mp3_filename)
+                    print(f"✅ Trovato ricorsivamente: {mp3_path}")
+                    found = True
+                    break
+            
+            if not found:
+                 print(f"❌ Impossibile trovare il file audio: {mp3_filename}")
+                 mp3_path = None
+
         # Durata
-        duration = get_audio_duration(mp3_path) if os.path.exists(mp3_path) else 300.0
+        if mp3_path and os.path.exists(mp3_path):
+            duration = get_audio_duration(mp3_path)
+        else:
+            print("⚠️  Audio non trovato, uso durata di default (300s)")
+            duration = 300.0
         print(f"⏱️  Durata audio: {duration:.2f}s")
         
         # Segmenti
@@ -679,41 +712,53 @@ def main():
             print("\n🚀 Avvio pipeline di raffinamento...")
             
             # 1. Audio Analysis
+            analysis_ok = True
             if not skip_analysis:
                 print("🎧 Analisi audio in corso (audio_analyzer.py)...")
-                if os.path.exists("audio_analyzer.py"):
-                    try:
-                        # Se mp3_path non esiste, lo script fallirà probabilmente, ma ci proviamo
-                        actual_mp3 = mp3_path if os.path.exists(mp3_path) else "MISSING_AUDIO"
-                        subprocess.run([sys.executable, "audio_analyzer.py", actual_mp3, sm_path], check=True)
-                    except subprocess.CalledProcessError as e:
-                        print(f"   ⚠️  Errore nell'esecuzione di audio_analyzer.py: {e}")
+                if mp3_path and os.path.exists(mp3_path):
+                    audio_analyzer_path = os.path.join(SRC_DIR, "audio_analyzer.py")
+                    if os.path.exists(audio_analyzer_path):
+                        try:
+                            subprocess.run([sys.executable, audio_analyzer_path, mp3_path, sm_path], check=True)
+                        except subprocess.CalledProcessError as e:
+                            print(f"   ⚠️  Errore nell'esecuzione di audio_analyzer.py: {e}")
+                            analysis_ok = False
+                    else:
+                        print(f"   ⚠️  audio_analyzer.py non trovato in {SRC_DIR}!")
+                        analysis_ok = False
                 else:
-                    print("   ⚠️  audio_analyzer.py non trovato!")
+                    print("❌ ERRORE: File audio mancante. Impossibile avviare analisi.")
+                    analysis_ok = False
             else:
                 print("🎧 Skipping Audio Analysis (Using existing analysis_data.json)...")
+                if not os.path.exists("analysis_data.json"):
+                     analysis_ok = False
 
             # 2. Refiners (New Modular Structure)
-            print("   Running Refiners for all difficulties...")
-            
-            # Define the pipeline levels
-            levels = [
-                {
-                    "name": "Easy",
-                    "folder": "1 easy",
-                    "scripts": ["easy_4th.py", "easy_8th.py", "easy_jump.py", "easy_hold.py"]
-                },
-                {
-                    "name": "Medium",
-                    "folder": "2 medium",
-                    "scripts": ["medium_4th.py", "medium_8th.py", "medium_jump.py", "medium_hold.py"]
-                },
-                {
-                    "name": "Hard",
-                    "folder": "3 hard",
-                    "scripts": ["hard_4th.py", "hard_8th.py", "hard_jump.py", "hard_hold.py"]
-                }
-            ]
+            if analysis_ok:
+                print("   Running Refiners for all difficulties...")
+                
+                # Define the pipeline levels
+                levels = [
+                    {
+                        "name": "Easy",
+                        "folder": os.path.join(ROOT_DIR, "1 easy"),
+                        "scripts": ["easy_4th.py", "easy_8th.py", "easy_jump.py", "easy_hold.py"]
+                    },
+                    {
+                        "name": "Medium",
+                        "folder": os.path.join(ROOT_DIR, "2 medium"),
+                        "scripts": ["medium_4th.py", "medium_8th.py", "medium_jump.py", "medium_hold.py"]
+                    },
+                    {
+                        "name": "Hard",
+                        "folder": os.path.join(ROOT_DIR, "3 hard"),
+                        "scripts": ["hard_4th.py", "hard_8th.py", "hard_jump.py", "hard_hold.py"]
+                    }
+                ]
+            else:
+                print("⛔ Skipping Refiners (Analisi fallita o dati mancanti).")
+                levels = []
             
             current_sm = sm_path
             
@@ -733,15 +778,16 @@ def main():
 
             # 3. Post-Processing Refiners (Common)
             tail_refiners = ["PP_mute.py", "PP_IntroEnd.py"]
-            for script in tail_refiners:
-                if os.path.exists(script):
-                    print(f"   Running {script}...")
+            for script_name in tail_refiners:
+                script_path = os.path.join(SRC_DIR, script_name)
+                if os.path.exists(script_path):
+                    print(f"   Running {script_name}...")
                     try:
-                        subprocess.run([sys.executable, script, current_sm, current_sm, "analysis_data.json"], check=True)
+                        subprocess.run([sys.executable, script_path, current_sm, current_sm, "analysis_data.json"], check=True)
                     except subprocess.CalledProcessError as e:
-                        print(f"   ⚠️  Errore nell'esecuzione di {script}: {e}")
+                        print(f"   ⚠️  Errore nell'esecuzione di {script_name}: {e}")
                 else:
-                    print(f"   ⚠️  Script {script} non trovato, salto.")
+                    print(f"   ⚠️  Script {script_path} non trovato, salto.")
             
             print(f"✅ Pipeline completata sul file: {sm_path}")
             
@@ -757,28 +803,30 @@ def main():
             # Grafica (BG.png / BN.png)
             # Nota: Potrebbe essere già stato avviato in background da open_in_arrowvortex.py
             print("\n�️  Generazione grafica (BG.png / BN.png)...")
-            gfx_script = "add_grafic.py"
-            if os.path.exists(gfx_script):
+            gfx_script_name = "add_grafic.py"
+            gfx_script_path = os.path.join(SRC_DIR, gfx_script_name)
+            if os.path.exists(gfx_script_path):
                 try:
-                    subprocess.run([sys.executable, gfx_script, sm_path], check=True)
+                    subprocess.run([sys.executable, gfx_script_path, sm_path], check=True)
                 except subprocess.CalledProcessError as e:
                     print(f"   ⚠️  Errore durante la generazione grafica: {e}")
             else:
-                print(f"   ⚠️  Script {gfx_script} non trovato, salto.")
+                print(f"   ⚠️  Script {gfx_script_path} non trovato, salto.")
 
             # AZIONI FINALI (Organizzazione cartelle)
             print("\n Esecuzione azioni finali (Organizzazione cartelle)...")
-            final_script = "PP_azioniFinali.py"
-            if os.path.exists(final_script):
+            final_script_name = "PP_azioniFinali.py"
+            final_script_path = os.path.join(SRC_DIR, final_script_name)
+            if os.path.exists(final_script_path):
                 try:
-                    cmd_final = [sys.executable, final_script, sm_path]
+                    cmd_final = [sys.executable, final_script_path, sm_path]
                     if skip_analysis:
                         cmd_final.append("--preserve-json")
                     subprocess.run(cmd_final, check=True)
                 except subprocess.CalledProcessError as e:
                     print(f"❌ Errore durante le azioni finali: {e}")
             else:
-                 print(f"⚠️  Script {final_script} non trovato.")
+                 print(f"⚠️  Script {final_script_path} non trovato.")
             
         return
 
@@ -887,28 +935,33 @@ def main():
         # 9a. Esegui Audio Analyzer (CRITICO: Aggiorna analysis_data.json per la canzone corrente)
         if not skip_analysis:
             print("🎧 Analisi audio in corso (audio_analyzer.py)...")
-            if os.path.exists("audio_analyzer.py"):
+            audio_analyzer_path = os.path.join(SRC_DIR, "audio_analyzer.py")
+            if os.path.exists(audio_analyzer_path):
                 try:
                     # mp3_path è il path assoluto o relativo corretto trovato all'inizio
                     # sm_filename è il path relativo (es. songs/Title.sm)
-                    subprocess.run([sys.executable, "audio_analyzer.py", mp3_path, sm_filename], check=True)
+                    subprocess.run([sys.executable, audio_analyzer_path, mp3_path, sm_filename], check=True)
                     
                     # --- START BACKGROUND GRAPHICS SEARCH HERE ---
                     # Avviamo add_grafic.py in background subito dopo l'analisi audio.
                     # L'utente deve ancora fare ArrowVortex, ma intanto cerchiamo le immagini.
                     # Passiamo sm_filename (path relativo o assoluto del file SM creato preliminarmente).
                     print("\n🖼️  Avvio ricerca grafica in background (mentre prosegui con ArrowVortex)...")
-                    try:
-                        # Usiamo Popen per non bloccare
-                        gfx_process = subprocess.Popen([sys.executable, "add_grafic.py", sm_filename])
-                    except Exception as ex_gfx:
-                        print(f"⚠️  Impossibile avviare add_grafic in background: {ex_gfx}")
+                    gfx_script_path = os.path.join(SRC_DIR, "add_grafic.py")
+                    if os.path.exists(gfx_script_path):
+                        try:
+                            # Usiamo Popen per non bloccare
+                            gfx_process = subprocess.Popen([sys.executable, gfx_script_path, sm_filename])
+                        except Exception as ex_gfx:
+                            print(f"⚠️  Impossibile avviare add_grafic in background: {ex_gfx}")
+                    else:
+                        print(f"⚠️  Script {gfx_script_path} non trovato, salto grafica background.")
                     # ---------------------------------------------
                     
                 except subprocess.CalledProcessError as e:
                     print(f"   ⚠️  Errore nell'esecuzione di audio_analyzer.py: {e}")
             else:
-                print("   ⚠️  audio_analyzer.py non trovato! Impossibile aggiornare i dati di analisi.")
+                print(f"   ⚠️  {audio_analyzer_path} non trovato! Impossibile aggiornare i dati di analisi.")
         else:
             print("🎧 Skipping Audio Analysis (Using existing analysis_data.json)...")
 
@@ -932,17 +985,17 @@ def main():
         levels = [
             {
                 "name": "Easy",
-                "folder": "1 easy",
+                "folder": os.path.join(ROOT_DIR, "1 easy"),
                 "scripts": ["easy_4th.py", "easy_8th.py", "easy_jump.py", "easy_hold.py"]
             },
             {
                 "name": "Medium",
-                "folder": "2 medium",
+                "folder": os.path.join(ROOT_DIR, "2 medium"),
                 "scripts": ["medium_4th.py", "medium_8th.py", "medium_jump.py", "medium_hold.py"]
             },
             {
                 "name": "Hard",
-                "folder": "3 hard",
+                "folder": os.path.join(ROOT_DIR, "3 hard"),
                 "scripts": ["hard_4th.py", "hard_8th.py", "hard_jump.py", "hard_hold.py"]
             }
         ]
@@ -965,15 +1018,16 @@ def main():
 
         # 3. Post-Processing Refiners (Common)
         tail_refiners = ["PP_mute.py", "PP_IntroEnd.py"]
-        for script in tail_refiners:
-            if os.path.exists(script):
-                print(f"   Running {script}...")
+        for script_name in tail_refiners:
+            script_path = os.path.join(SRC_DIR, script_name)
+            if os.path.exists(script_path):
+                print(f"   Running {script_name}...")
                 try:
-                    subprocess.run([sys.executable, script, current_sm, current_sm, "analysis_data.json"], check=True)
+                    subprocess.run([sys.executable, script_path, current_sm, current_sm, "analysis_data.json"], check=True)
                 except subprocess.CalledProcessError as e:
-                    print(f"   ⚠️  Errore nell'esecuzione di {script}: {e}")
+                    print(f"   ⚠️  Errore nell'esecuzione di {script_name}: {e}")
             else:
-                print(f"   ⚠️  Script {script} non trovato, salto.")
+                print(f"   ⚠️  Script {script_path} non trovato, salto.")
         
         print(f"✅ Pipeline completata sul file: {sm_path}")
             

@@ -316,8 +316,17 @@ def main():
     pygame.key.set_repeat(400, 100)
 
     # 1. Scelta File
-    songs_folder = os.path.join(os.getcwd(), "songs")
-    mp3_files = [f for f in os.listdir(songs_folder) if f.lower().endswith('.mp3')]
+    src_dir = os.path.dirname(os.path.abspath(__file__))
+    root_dir = os.path.dirname(src_dir)
+    songs_folder = os.path.join(root_dir, "songs")
+    if not os.path.exists(songs_folder):
+         # Fallback if structure is different
+         songs_folder = os.path.join(os.getcwd(), "songs")
+         
+    if os.path.exists(songs_folder):
+        mp3_files = [f for f in os.listdir(songs_folder) if f.lower().endswith('.mp3')]
+    else:
+        mp3_files = []
     
     if not mp3_files:
         print(f"{Colors.FAIL}Nessun file MP3 trovato nella cartella 'songs'.{Colors.ENDC}")

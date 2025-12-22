@@ -1,4 +1,5 @@
 @echo off
+setlocal EnableDelayedExpansion
 title StepMania Chart Generator - ArrowVortex Workflow
 color 0F
 
@@ -26,13 +27,16 @@ echo.
 echo ============================================================
 echo.
 
-set /p choice="Seleziona opzione: "
+set /p choice="Seleziona opzione, o inserisci un URL YouTube: "
 
-if "%choice%"=="1" goto OPEN_AV
-if "%choice%"=="2" goto REGENERATE
-if "%choice%"=="3" goto MOD_STEPS
-if "%choice%"=="4" goto SUPPORT
-if "%choice%"=="9" goto EXIT
+echo !choice! | findstr /C:"http" >nul
+if !errorlevel!==0 goto YOUTUBE_DL
+
+if "!choice!"=="1" goto OPEN_AV
+if "!choice!"=="2" goto REGENERATE
+if "!choice!"=="3" goto MOD_STEPS
+if "!choice!"=="4" goto SUPPORT
+if "!choice!"=="9" goto EXIT
 
 echo.
 echo Scelta non valida!
@@ -47,7 +51,7 @@ echo   1. APRI IN ARROWVORTEX
 echo ============================================================
 echo.
 call venv\Scripts\activate.bat
-python open_in_arrowvortex.py
+python src\open_in_arrowvortex.py
 pause
 goto MENU
 
@@ -59,7 +63,7 @@ echo   2. RIGENERA GRAFICO (VELOCE)
 echo ============================================================
 echo.
 call venv\Scripts\activate.bat
-python regenerate_menu.py
+python src\regenerate_menu.py
 pause
 goto MENU
 
@@ -71,7 +75,7 @@ echo   3. MODIFICA DIFFICOLTA
 echo ============================================================
 echo.
 call venv\Scripts\activate.bat
-python modifica_steps.py
+python src\modifica_steps.py
 pause
 goto MENU
 
@@ -83,7 +87,19 @@ echo   4. SUPPORT ME
 echo ============================================================
 echo.
 call venv\Scripts\activate.bat
-python support_me.py
+python src\support_me.py
+goto MENU
+
+:YOUTUBE_DL
+cls
+echo.
+echo ============================================================
+echo   SCARICAMENTO DA YOUTUBE
+echo ============================================================
+echo.
+call venv\Scripts\activate.bat
+python src\audioYouTube.py "!choice!"
+pause
 goto MENU
 
 :EXIT
