@@ -25,6 +25,25 @@ def clean_youtube_url(url):
 def get_user_input(prompt):
     return input(prompt).strip()
 
+def get_ffmpeg_path():
+    """
+    Reads path.txt to find ffmpeg path.
+    Returns the directory containing ffmpeg.exe or the path itself if it's a dir.
+    """
+    config_file = os.path.join(ROOT_DIR, "path.txt")
+    if os.path.exists(config_file):
+        try:
+            with open(config_file, 'r', encoding='utf-8') as f:
+                for line in f:
+                    line = line.strip().replace('"', '').replace("'", "")
+                    if "ffmpeg" in line.lower():
+                        # If it points to executable, get dirname
+                        if line.lower().endswith("ffmpeg.exe"):
+                            return os.path.dirname(line)
+                        return line
+        except: pass
+    return None
+
 def download_audio(url, output_path):
     """
     Downloads audio from YouTube using yt-dlp and converts to MP3.
@@ -32,6 +51,21 @@ def download_audio(url, output_path):
     """
     print(f"Downloading from: {url}")
     
+    ffmpeg_location = get_ffmpeg_path()
+    if ffmpeg_location:
+        print(f"FFmpeg path detected: {ffmpeg_location}")
+        # Verify if it seems valid
+        if not os.path.exists(ffmpeg_location):
+             print(f"⚠️  Attenzione: Il percorso specificato per FFmpeg non esiste: {ffmpeg_location}")
+    else:
+        print("FFmpeg path not found in path.txt, relying on system PATH...")
+        if not shutil.which("ffmpeg"):
+            print("\n❌ ERRORE CRITICO: FFmpeg non trovato nel sistema né in path.txt!")
+            print("Per scaricare l'audio è necessario FFmpeg.")
+            print("1. Scaricalo da https://ffmpeg.org/download.html")
+            print("2. Inserisci il percorso della cartella 'bin' in path.txt (o aggiungilo al PATH di sistema)")
+            raise Exception("FFmpeg not found")
+
     ydl_opts = {
         'format': 'bestaudio/best',
         'outtmpl': os.path.join(output_path, '%(title)s.%(ext)s'),
@@ -43,6 +77,9 @@ def download_audio(url, output_path):
         'quiet': False,
         'no_warnings': True,
     }
+    
+    if ffmpeg_location:
+        ydl_opts['ffmpeg_location'] = ffmpeg_location
 
     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
         info = ydl.extract_info(url, download=True)

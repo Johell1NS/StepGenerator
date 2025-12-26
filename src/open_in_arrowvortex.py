@@ -25,16 +25,20 @@ class Colors:
 # Dynamic Path for ArrowVortex
 SRC_DIR = os.path.dirname(os.path.abspath(__file__))
 ROOT_DIR = os.path.dirname(SRC_DIR)
-CONFIG_FILE = os.path.join(ROOT_DIR, "path_arrowvortex.txt")
+CONFIG_FILE = os.path.join(ROOT_DIR, "path.txt")
 ARROW_VORTEX_PATH = None
 
 if os.path.exists(CONFIG_FILE):
     try:
         with open(CONFIG_FILE, 'r', encoding='utf-8') as f:
-            line = f.readline().strip()
-            if line:
-                # Rimuovi eventuali virgolette se l'utente le ha messe
-                ARROW_VORTEX_PATH = line.replace('"', '').replace("'", "")
+            for line in f:
+                raw_line = line.strip()
+                clean_line = raw_line.replace('"', '').replace("'", "")
+                
+                # Cerchiamo l'eseguibile di ArrowVortex
+                if "arrowvortex" in clean_line.lower() and clean_line.lower().endswith(".exe"):
+                    ARROW_VORTEX_PATH = clean_line
+                    break
     except Exception:
         pass
 
@@ -96,16 +100,17 @@ def main():
     if not ARROW_VORTEX_PATH:
         print(f"\n{Colors.WARNING}⚠️  PERCORSO ARROWVORTEX MANCANTE{Colors.ENDC}")
         print("Per utilizzare questa funzione, devi indicare dove si trova ArrowVortex.")
-        print(f"1. Apri il file {Colors.BOLD}path_arrowvortex.txt{Colors.ENDC} nella cartella principale.")
-        print("2. Incolla il percorso completo dell'eseguibile.")
-        print(f"\nEsempio di contenuto valido:\n{Colors.BLUE}C:\\Program Files\\ArrowVortex\\ArrowVortex.exe{Colors.ENDC}")
+        print(f"1. Apri il file {Colors.BOLD}path.txt{Colors.ENDC} nella cartella principale.")
+        print("2. Incolla il percorso completo dell'eseguibile di ArrowVortex.")
+        print("   (Puoi inserire anche il percorso di FFmpeg in una nuova riga)")
+        print(f"\nEsempio di contenuto valido:\n{Colors.BLUE}C:\\Program Files\\ArrowVortex\\ArrowVortex.exe\nC:\\ffmpeg\\bin{Colors.ENDC}")
         input("\nPremi INVIO per tornare al menu...")
         return
 
     if not os.path.exists(ARROW_VORTEX_PATH):
         print(f"{Colors.FAIL}Errore: ArrowVortex non trovato.{Colors.ENDC}")
         print(f"Percorso letto: {ARROW_VORTEX_PATH}")
-        print("Controlla che il percorso nel file 'path_arrowvortex.txt' sia corretto ed esista.")
+        print("Controlla che il percorso nel file 'path.txt' sia corretto ed esista.")
         input("\nPremi INVIO per tornare al menu...")
         return
 
