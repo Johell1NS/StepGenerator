@@ -45,6 +45,8 @@ Only after saving the initial `.sm` file with the correct tempo can we launch au
 
 These actions need to be performed **only the first time**.
 
+First install arrowvortex and ffmpeg (by adding it to your Windows Environment Variables/PATH), then do the following:
+
 1. Clone the project.
 2. Run the `setup_venv.bat` file to install the virtual environment with all necessary dependencies.
 3. Open the `path_arrowvortex.txt` file in the project folder.
@@ -151,6 +153,7 @@ This project is developed entirely in my spare time with the goal of making char
 If the tool has saved you time and you're enjoying the songs you've created, consider buying me a (virtual) coffee to support the development of future updates!
 
 [![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/C0C21QBS11)
+
 
 
 
