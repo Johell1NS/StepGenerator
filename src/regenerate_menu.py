@@ -38,14 +38,14 @@ def find_regeneratable_songs():
     return songs
 
 def main():
-    print("\n🔄 RIGENERA GRAFICO (Riprocessa SM esistente)")
-    print("   (Cerca cartelle con .sm e analysis_data.json)\n")
+    print("\n🔄 REGENERATE CHART (Reprocess existing SM)")
+    print("   (Searches folders with .sm and analysis_data.json)\n")
     
     songs = find_regeneratable_songs()
     
     if not songs:
-        print("❌ Nessuna canzone rigenerabile trovata (manca analysis_data.json o .sm).")
-        input("\nPremi Invio per tornare al menu...")
+        print("❌ No regeneratable song found (missing analysis_data.json or .sm).")
+        input("\nPress Enter to go back to the menu...")
         return
 
     print("-" * 60)
@@ -54,7 +54,7 @@ def main():
     print("-" * 60)
     
     while True:
-        choice = input("👉 Seleziona la canzone da rigenerare (0 per uscire): ")
+        choice = input("👉 Select the song to regenerate (0 to exit): ")
         try:
             choice_num = int(choice)
             if choice_num == 0:
@@ -63,17 +63,17 @@ def main():
                 selected = songs[choice_num - 1]
                 break
             else:
-                print("❌ Numero non valido.")
+                print("❌ Invalid number.")
         except ValueError:
-            print("❌ Inserisci un numero valido.")
+            print("❌ Please enter a valid number.")
 
-    print(f"\n🚀 Avvio rigenerazione per: {selected['name']}")
+    print(f"\n🚀 Starting regeneration for: {selected['name']}")
     
     # 1. Copy analysis_data.json to root (backup existing if any?)
     # We overwrite root analysis_data.json because it's transient
     root_json = "analysis_data.json"
     shutil.copy2(selected['json_path'], root_json)
-    print(f"✅ Dati di analisi caricati da: {selected['json_path']}")
+    print(f"✅ Analysis data loaded from: {selected['json_path']}")
     
     # 2. Run StepMania Generator
     # Command: python stepmania_generator.py --from-sm "path/to/sm" --pipeline --skip-analysis
@@ -82,11 +82,11 @@ def main():
     
     try:
         subprocess.run(cmd, check=True)
-        print("\n✅ Rigenerazione completata!")
+        print("\n✅ Regeneration completed!")
     except subprocess.CalledProcessError as e:
-        print(f"\n❌ Errore durante la rigenerazione: {e}")
+        print(f"\n❌ Error during regeneration: {e}")
     except Exception as e:
-        print(f"\n❌ Errore imprevisto: {e}")
+        print(f"\n❌ Unexpected error: {e}")
     finally:
         # Cleanup root json?
         # Maybe keep it for debugging or subsequent runs, usually safe to leave or delete.
@@ -94,7 +94,7 @@ def main():
         if os.path.exists(root_json):
             os.remove(root_json)
 
-    input("\nPremi Invio per continuare...")
+    input("\nPress Enter to continue...")
 
 if __name__ == "__main__":
     main()

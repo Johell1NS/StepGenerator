@@ -6,7 +6,7 @@ import pygame
 import librosa
 import numpy as np
 
-# Configurazione Colori Console
+# Console Color Configuration
 class Colors:
     HEADER = '\033[95m'
     BLUE = '\033[94m'
@@ -18,53 +18,53 @@ class Colors:
 
 def get_top_bpm_candidates_fft(onset_env, sr, hop_length, n_candidates=5):
     """
-    Calcola i migliori candidati BPM usando FFT.
-    Restituisce una lista di tuple (bpm, score) normalizzata.
+    Calculates the best BPM candidates using FFT.
+    Returns a list of tuples (bpm, score) normalized.
     """
     try:
-        # 1. Preparazione Segnale
+        # 1. Signal Preparation
         onset_centered = onset_env - np.mean(onset_env)
         window = np.hanning(len(onset_centered))
         signal = onset_centered * window
-        
+
         # 2. FFT
-        n_fft = 1 << 20 
+        n_fft = 1 << 20
         spectrum = np.abs(np.fft.rfft(signal, n=n_fft))
         freqs = np.fft.rfftfreq(n_fft, d=hop_length/sr)
-        
-        # 3. Conversione
+
+        # 3. Conversion
         bpms = freqs * 60.0
         mask = (bpms >= 40) & (bpms <= 250)
-        
+
         if not np.any(mask):
             return [(120.0, 0.0)]
-            
+
         spectrum_masked = spectrum[mask]
         bpms_masked = bpms[mask]
-        
-        # 4. Trova Picchi
+
+        # 4. Find Peaks
         peaks = []
         for i in range(1, len(spectrum_masked) - 1):
             if spectrum_masked[i] > spectrum_masked[i-1] and spectrum_masked[i] > spectrum_masked[i+1]:
                 peaks.append((spectrum_masked[i], i))
-                
-        # Ordina per score
+
+        # Sort by score
         peaks.sort(key=lambda x: x[0], reverse=True)
-        
-        # Normalizza score (0-1)
+
+        # Normalize score (0-1)
         max_score = peaks[0][0] if peaks else 1.0
         if max_score == 0: max_score = 1.0
 
         top_peaks = peaks[:n_candidates]
         candidates = []
-        
+
         global_indices = np.where(mask)[0]
-        
+
         for amp, local_idx in top_peaks:
             peak_global_idx = global_indices[local_idx]
             refined_bpm = bpms_masked[local_idx]
-            
-            # Interpolazione
+
+            # Interpolation
             if 0 < peak_global_idx < len(spectrum) - 1:
                 y0 = spectrum[peak_global_idx - 1]
                 y1 = spectrum[peak_global_idx]
@@ -74,19 +74,19 @@ def get_top_bpm_candidates_fft(onset_env, sr, hop_length, n_candidates=5):
                     p = 0.5 * (y0 - y2) / denom
                     refined_freq = freqs[peak_global_idx] + p * (freqs[1] - freqs[0])
                     refined_bpm = refined_freq * 60.0
-            
+
             candidates.append((refined_bpm, amp / max_score))
             
         return candidates
         
     except Exception as e:
-        print(f"Errore FFT BPM: {e}")
+        print(f"FFT BPM Error: {e}")
         return [(120.0, 0.0)]
 
 def get_candidates_autocorr(onset_env, sr, hop_length, n_candidates=5):
     """
-    Trova candidati BPM usando Autocorrelazione.
-    Restituisce lista di tuple (bpm, score) normalizzata.
+    Finds BPM candidates using Autocorrelation.
+    Returns a list of tuples (bpm, score) normalized.
     """
     try:
         max_lag = int(60.0 / 40.0 * sr / hop_length)
@@ -107,109 +107,109 @@ def get_candidates_autocorr(onset_env, sr, hop_length, n_candidates=5):
                 candidates.append((bpm, ac[lag]))
         
         candidates.sort(key=lambda x: x[1], reverse=True)
-        
-        # Normalizza score
+
+        # Normalize score
         max_score = candidates[0][1] if candidates else 1.0
         if max_score == 0: max_score = 1.0
         
         return [(c[0], c[1] / max_score) for c in candidates[:n_candidates]]
         
     except Exception as e:
-        print(f"Errore Autocorr BPM: {e}")
+        print(f"Autocorr BPM Error: {e}")
         return []
 
 def calculate_phase_coherence(bpm, beat_times):
     """
-    Calcola la coerenza di fase per un dato BPM rispetto ai beat rilevati.
-    Restituisce un valore tra 0 e 1 (1 = coerenza perfetta).
+    Calculates phase coherence for a given BPM with respect to detected beats.
+    Returns a value between 0 and 1 (1 = perfect coherence).
     """
     if bpm <= 0 or len(beat_times) == 0:
         return 0.0
     
-    # Angolo di fase per ogni beat: phi = (time * BPM / 60) * 2pi
-    # Se il BPM è corretto, phi mod 2pi dovrebbe essere costante (o variare lentamente)
-    # Calcoliamo il vettore somma unitario
+    # Phase angle for each beat: phi = (time * BPM / 60) * 2pi
+    # If the BPM is correct, phi mod 2pi should be constant (or vary slowly)
+    # We calculate the unit vector sum
     phases = 2 * np.pi * beat_times * (bpm / 60.0)
     vector_sum = np.sum(np.exp(1j * phases))
     coherence = np.abs(vector_sum) / len(beat_times)
     return coherence
 
 def load_audio_analysis(file_path):
-    print(f"{Colors.BLUE}⏳ Analisi BPM Avanzata (Full Song + Phase Check) in corso...{Colors.ENDC}")
+    print(f"{Colors.BLUE}⏳ Advanced BPM Analysis (Full Song + Phase Check) in progress...{Colors.ENDC}")
     try:
-        # 1. Caricamento Audio
-        print(f"   Caricamento audio completo (22050Hz)...")
+        # 1. Audio Loading
+        print(f"   Full audio loaded (22050Hz)...")
         y, sr = librosa.load(file_path, sr=22050)
         total_duration = librosa.get_duration(y=y, sr=sr)
-        
+
         # 2. Onset Envelope
-        hop_len = 128 
-        print(f"   Calcolo Onset Envelope...")
+        hop_len = 128
+        print(f"   Computing Onset Envelope...")
         onset_env = librosa.onset.onset_strength(y=y, sr=sr, hop_length=hop_len)
-        
-        # 3. Generazione Candidati
-        print(f"   Generazione Candidati BPM (FFT + Autocorr)...")
-        # Riduciamo n_candidates base per essere più selettivi
+
+        # 3. Generate Candidates
+        print(f"   Generating BPM Candidates (FFT + Autocorr)...")
+        # We reduce base n_candidates to be more selective
         fft_candidates = get_top_bpm_candidates_fft(onset_env, sr, hop_len, n_candidates=4)
         ac_candidates = get_candidates_autocorr(onset_env, sr, hop_len, n_candidates=4)
         
-        # Pool di candidati con punteggio (BPM, Score)
-        # Score combinato: diamo un po' più peso all'Autocorrelazione per la stabilità ritmica
+        # Candidate pool with score (BPM, Score)
+        # Combined score: we give Autocorrelation slightly more weight for rhythmic stability
         weighted_candidates = []
-        
+
         for bpm, score in fft_candidates:
             weighted_candidates.append((bpm, score * 1.0))
-            
+
         for bpm, score in ac_candidates:
-            weighted_candidates.append((bpm, score * 1.2)) # Boost Autocorr
+            weighted_candidates.append((bpm, score * 1.2))  # Autocorr Boost
             
-        # Generazione Varianti (con penalità di punteggio)
+        # Generate Variants (with score penalty)
         final_pool = []
         seen_bpms = []
-        
+
         def add_candidate(bpm, score):
             if not (40 <= bpm <= 250): return
-            
-            # Check duplicati vicini
+
+            # Check nearby duplicates
             for i, (existing_bpm, existing_score) in enumerate(final_pool):
                 if abs(existing_bpm - bpm) < 0.05:
-                    # Se il nuovo è "migliore" (score più alto), sostituisci o ignora
+                    # If the new one is "better" (higher score), replace or ignore
                     if score > existing_score:
                         final_pool[i] = (bpm, score)
-                    return # Già presente
-            
+                    return  # Already present
+
             final_pool.append((bpm, score))
 
         for bpm, score in weighted_candidates:
-            add_candidate(bpm, score) # Originale
-            
-            # Varianti Intere (Molto probabili nelle canzoni moderne)
+            add_candidate(bpm, score)  # Original
+
+            # Integer Variants (Very likely in modern songs)
             add_candidate(round(bpm), score * 0.95)
-            
-            # Varianti Semi-Intere (es. 128.5)
+
+            # Semi-Integer Variants (e.g. 128.5)
             add_candidate(round(bpm * 2) / 2, score * 0.90)
-            
-            # Varianti Ottava (Double/Half time) - Penalità maggiore
+
+            # Octave Variants (Double/Half time) - Higher penalty
             add_candidate(bpm * 2, score * 0.7)
             add_candidate(bpm * 0.5, score * 0.7)
-            
-        # Ordina per Score Decrescente
-        final_pool.sort(key=lambda x: x[1], reverse=True)
-        
-        # PRENDI SOLO I TOP N (es. 12) per evitare freeze
-        top_candidates = final_pool[:12]
-        
-        print(f"   Valutazione Top {len(top_candidates)} candidati (su {len(final_pool)} totali)...")
 
-        print(f"\n   {Colors.BLUE}Valutazione Candidati (Beat Track Seeded):{Colors.ENDC}")
+        # Sort by Descending Score
+        final_pool.sort(key=lambda x: x[1], reverse=True)
+
+        # TAKE ONLY TOP N (e.g. 12) to avoid freeze
+        top_candidates = final_pool[:12]
+
+        print(f"   Evaluating Top {len(top_candidates)} candidates (out of {len(final_pool)} total)...")
+
+        print(f"\n   {Colors.BLUE}Evaluating Candidates (Beat Track Seeded):{Colors.ENDC}")
         best_bpm = 120.0
         best_score = -1.0
         
         results = []
         
         for i, (start_bpm, prior_score) in enumerate(top_candidates):
-            # Feedback visivo per l'utente
-            print(f"   [{i+1}/{len(top_candidates)}] Test BPM: {start_bpm:.2f}...", end="\r")
+            # Visual feedback for user
+            print(f"   [{i+1}/{len(top_candidates)}] Testing BPM: {start_bpm:.2f}...", end="\r")
             
             try:
                 tempo, beats = librosa.beat.beat_track(onset_envelope=onset_env, sr=sr, hop_length=hop_len, start_bpm=start_bpm, tightness=100)
@@ -224,11 +224,11 @@ def load_audio_analysis(file_path):
             beat_times = librosa.frames_to_time(beats, sr=sr, hop_length=hop_len)
             
             phase_score = calculate_phase_coherence(tempo, beat_times)
-            
-            # Combina phase_score con prior_score? No, fidiamoci della fase.
-            # La fase è la prova reale di allineamento.
-            
-            # Evita duplicati
+
+            # Combine phase_score with prior_score? No, let's trust the phase.
+            # Phase is the real alignment test.
+
+            # Avoid duplicates
             exists = False
             for r in results:
                 if abs(r[0] - tempo) < 0.05:
@@ -240,33 +240,33 @@ def load_audio_analysis(file_path):
             if not exists:
                 results.append([tempo, phase_score])
 
-        print(" " * 50, end="\r") # Pulisci riga
-        
-        # Ordina risultati
+        print(" " * 50, end="\r")  # Clean line
+
+        # Sort results
         results.sort(key=lambda x: x[1], reverse=True)
         
         if results:
             best_bpm = results[0][0]
             best_score = results[0][1]
             
-            # Stampa Top 3
+            # Print Top 3
             for bpm, score in results[:3]:
                 marker = "⭐️" if bpm == best_bpm else ""
                 print(f"   BPM: {bpm:.6f} -> Coherence: {score:.4f} {marker}")
         
-        print(f"\n{Colors.GREEN}✅ BPM Vincitore: {best_bpm:.6f} (Coherence: {best_score:.4f}){Colors.ENDC}")
+        print(f"\n{Colors.GREEN}✅ Winning BPM: {best_bpm:.6f} (Coherence: {best_score:.4f}){Colors.ENDC}")
         
         return best_bpm, total_duration
 
     except Exception as e:
-        print(f"{Colors.FAIL}❌ Errore durante l'analisi audio: {e}{Colors.ENDC}")
+        print(f"{Colors.FAIL}❌ Error during audio analysis: {e}{Colors.ENDC}")
         import traceback
         traceback.print_exc()
         return 120.0, 0  # Fallback
 
 
 def create_sm_content(title, artist, music_file, offset, bpm):
-    # Template base identico a quello di ArrowVortex
+    # Base template identical to ArrowVortex's
     content = f"""#TITLE:{title};
 #SUBTITLE:;
 #ARTIST:{artist};
@@ -292,9 +292,9 @@ def create_sm_content(title, artist, music_file, offset, bpm):
     return content
 
 def main():
-    # Setup Audio Buffer per ridurre la latenza
-    # 512 è standard, 256 è molto aggressivo (circa 6ms) per minima latenza
-    # Se senti "scoppiettii" (crackling), aumenta a 512 o 1024
+    # Setup Audio Buffer to reduce latency
+    # 512 is standard, 256 is very aggressive (~6ms) for minimal latency
+    # If you hear crackling, increase to 512 or 1024
     try:
         pygame.mixer.pre_init(frequency=44100, size=-16, channels=2, buffer=256)
     except Exception:
@@ -303,19 +303,19 @@ def main():
     pygame.init()
     pygame.mixer.init()
     
-    # Setup finestra Pygame (necessaria per gli eventi tastiera)
+    # Setup Pygame window (required for keyboard events)
     screen_width = 600
     screen_height = 400
     screen = pygame.display.set_mode((screen_width, screen_height))
-    pygame.display.set_caption("StepGenerator - Calibrazione Manuale")
+    pygame.display.set_caption("StepGenerator - Manual Calibration")
     font = pygame.font.SysFont("Arial", 24)
     small_font = pygame.font.SysFont("Arial", 18)
 
-    # Abilita la ripetizione dei tasti (Delay 400ms, Interval 100ms)
-    # Questo permette di tenere premuto le frecce per scorrere velocemente
+    # Enable key repeat (Delay 400ms, Interval 100ms)
+    # This allows holding arrows to scroll quickly
     pygame.key.set_repeat(400, 100)
 
-    # 1. Scelta File
+    # 1. File Selection
     src_dir = os.path.dirname(os.path.abspath(__file__))
     root_dir = os.path.dirname(src_dir)
     songs_folder = os.path.join(root_dir, "songs")
@@ -329,62 +329,62 @@ def main():
         mp3_files = []
     
     if not mp3_files:
-        print(f"{Colors.FAIL}Nessun file MP3 trovato nella cartella 'songs'.{Colors.ENDC}")
+        print(f"{Colors.FAIL}No MP3 files found in the 'songs' folder.{Colors.ENDC}")
         return
 
-    print(f"\n{Colors.HEADER}--- SELEZIONA BRANO DA CALIBRARE ---{Colors.ENDC}")
+    print(f"\n{Colors.HEADER}--- SELECT TRACK TO CALIBRATE ---{Colors.ENDC}")
     for i, f in enumerate(mp3_files):
         print(f"{i+1}. {f}")
         
     try:
-        choice = int(input(f"\n{Colors.BLUE}Inserisci il numero del brano: {Colors.ENDC}")) - 1
+        choice = int(input(f"\n{Colors.BLUE}Enter track number: {Colors.ENDC}")) - 1
         if choice < 0 or choice >= len(mp3_files):
             raise ValueError
         selected_mp3 = mp3_files[choice]
         mp3_path = os.path.join(songs_folder, selected_mp3)
     except:
-        print("Scelta non valida.")
+        print("Invalid choice.")
         return
 
-    # 2. Analisi Iniziale
+    # 2. Initial Analysis
     bpm, duration = load_audio_analysis(mp3_path)
     
-    # Generazione suono metronomo "Tick" EXTRA secco (Stile Digital Click)
+    # Generate EXTRA dry metronome 'Tick' sound (Digital Click Style)
     sample_rate = 44100
-    duration_beep = 0.03 # Leggermente aumentato per dare "corpo" al click, ma l'inviluppo lo taglierà
-    
+    duration_beep = 0.03  # Slightly increased to give "body" to the click, but the envelope will cut it
+
     def generate_tick_sound(freq, duration_sec, sr):
         n_samples = int(sr * duration_sec)
         t = np.linspace(0, duration_sec, n_samples, endpoint=False)
-        
-        # Onda Quadra (Square Wave) invece di Seno
-        # L'onda quadra ha molte più armoniche, quindi "buca" meglio il mix (si sente di più)
-        # ed è meno "dolce/tonale" della sinusoide, risultando più "meccanica/secca".
+
+        # Square Wave instead of Sine
+        # Square wave has many more harmonics, so it "cuts through" the mix better (more audible)
+        # and is less "sweet/tonal" than sine, resulting more "mechanical/dry".
         waveform = np.sign(np.sin(2 * np.pi * freq * t))
-        
-        # Inviluppo Percussivo Rapido
-        # exp(-t * 200) è un decadimento veloce.
-        # Questo trasforma il "BEEP" (onda quadra continua) in un "TIK" (impulso breve).
-        envelope = np.exp(-t * 150) 
-        
-        # Applicazione inviluppo
+
+        # Fast Percussive Envelope
+        # exp(-t * 200) is a fast decay.
+        # This transforms the "BEEP" (continuous square wave) into a "TIK" (short impulse).
+        envelope = np.exp(-t * 150)
+
+        # Apply envelope
         signal = waveform * envelope
-        
-        # Normalizzazione al MASSIMO (Saturazione controllata)
+
+        # MAX normalization (Controlled saturation)
         max_amp = 2**15 - 1
-        # Usiamo 0.95 per evitare clipping digitale sgradevole, ma massimizziamo il volume
+        # Use 0.95 to avoid unpleasant digital clipping, but maximize volume
         signal_int = (signal * max_amp * 0.95).astype(np.int16)
         
         return pygame.sndarray.make_sound(np.column_stack((signal_int, signal_int)))
 
-    # Frequenze per "Click" Digitale (Stile StepMania/ArrowVortex)
-    # Downbeat (1): Molto acuto, quasi un "hat" chiuso
+    # Frequencies for Digital 'Click' (StepMania/ArrowVortex Style)
+    # Downbeat (1): Very sharp, almost a closed 'hat'
     down_beep_sound = generate_tick_sound(2000, duration_beep, sample_rate)
-    
-    # Beat (2,3,4): Acuto ma distinto
+
+    # Beat (2,3,4): Sharp but distinct
     beep_sound = generate_tick_sound(1200, duration_beep, sample_rate)
     
-    # 3. Loop Interattivo
+    # 3. Interactive Loop
     pygame.mixer.music.load(mp3_path)
     pygame.mixer.music.play()
     
@@ -394,9 +394,9 @@ def main():
     running = True
     clock = pygame.time.Clock()
     
-    # Gestione Tempo Playback
+    # Playback Time Management
     music_start_time = time.time()
-    playback_offset = 0.0 # Offset temporale dovuto ai seek (avanti/indietro)
+    playback_offset = 0.0  # Temporal offset due to seeks (forward/backward)
     
     # Volume Control
     beep_volume = 0.5
@@ -404,14 +404,14 @@ def main():
     down_beep_sound.set_volume(beep_volume)
     
     instruction_text = [
-        "CONTROLLI:",
-        "FRECCIA GIÀ: Imposta il PRIMO DOWNBEAT (Sync)",
-        "NUMPAD 4/6: Sposta Offset +/- 10ms (Fine Tuning)",
-        "NUMPAD 8/2: Raddoppia/Dimezza BPM",
-        "1-9, 0: Regola Volume Beep (10%-100%)",
-        "FRECCIA SX/DX (Tieni premuto): Salta +/- 5s",
-        "INVIO: Salva e Esci",
-        "ESC: Esci senza salvare"
+        "CONTROLS:",
+        "DOWN ARROW: Set the FIRST DOWNBEAT (Sync)",
+        "NUMPAD 4/6: Shift Offset +/- 10ms (Fine Tuning)",
+        "NUMPAD 8/2: Double/Halve BPM",
+        "1-9, 0: Adjust Beep Volume (10%-100%)",
+        "LEFT/RIGHT ARROW (Hold): Skip +/- 5s",
+        "ENTER: Save and Exit",
+        "ESC: Exit without saving"
     ]
 
     while running:
@@ -436,74 +436,74 @@ def main():
                         sm_filename = os.path.splitext(selected_mp3)[0] + ".sm"
                         sm_path = os.path.join(songs_folder, sm_filename)
                         
-                        # Chiedi info base se non esistono
+                        # Ask for basic info if not available
                         title = os.path.splitext(selected_mp3)[0]
                         artist = "Unknown"
                         
                         content = create_sm_content(title, artist, selected_mp3, offset, bpm)
                         with open(sm_path, "w") as f:
                             f.write(content)
-                        print(f"\n{Colors.GREEN}✅ File salvato: {sm_filename}{Colors.ENDC}")
+                        print(f"\n{Colors.GREEN}✅ File saved: {sm_filename}{Colors.ENDC}")
                         print(f"   Offset: {offset:.6f}")
                         print(f"   BPM: {bpm:.6f}")
                     else:
-                        print(f"{Colors.WARNING}⚠️  Prima imposta il downbeat con FRECCIA GIÀ!{Colors.ENDC}")
+                        print(f"{Colors.WARNING}⚠️  Set the downbeat first with DOWN ARROW!{Colors.ENDC}")
 
                 elif event.key == pygame.K_DOWN:
-                    # CALIBRAZIONE
+                    # CALIBRATION
                     seconds_per_beat = 60.0 / bpm
-                    
-                    # 1. Trova il beat più vicino (snapping)
+
+                    # 1. Find nearest beat (snapping)
                     n_beats = round(current_time / seconds_per_beat)
-                    
-                    # 2. Calcola fase della misura (0, 1, 2, 3)
-                    # Noi vogliamo che il beat corrente sia un Downbeat (0)
-                    # Se n_beats % 4 != 0, dobbiamo shiftare l'offset per allinearci
+
+                    # 2. Calculate measure phase (0, 1, 2, 3)
+                    # We want the current beat to be a Downbeat (0)
+                    # If n_beats % 4 != 0, we need to shift offset to align
                     rem = n_beats % 4
-                    
-                    # 3. Calcola il "Downbeat Index" teorico
-                    # Questo è il beat numero (multiplo di 4) che "dovrebbe" essere qui
+
+                    # 3. Calculate theoretical "Downbeat Index"
+                    # This is the beat number (multiple of 4) that "should" be here
                     downbeat_index = n_beats - rem
-                    
-                    # 4. Calcola l'offset basandosi su questo downbeat index
+
+                    # 4. Calculate offset based on this downbeat index
                     # Formula SM: Time = Offset + Beat * SPB  =>  Offset = Time - Beat * SPB
                     offset = current_time - (downbeat_index * seconds_per_beat)
-                    
-                    # 5. Normalizza Offset per tenerlo vicino a 0 (tra -2*SPB e +2*SPB)
-                    # Questo evita offset enormi se si sincronizza a metà canzone
+
+                    # 5. Normalize Offset to keep it near 0 (between -2*SPB and +2*SPB)
+                    # This avoids huge offsets if syncing mid-song
                     half_measure = seconds_per_beat * 2
                     measure = seconds_per_beat * 4
-                    
+
                     while offset > half_measure:
                         offset -= measure
                     while offset < -half_measure:
                         offset += measure
-                    
+
                     is_calibrated = True
-                    screen.fill((50, 50, 50)) # Flash visuale
+                    screen.fill((50, 50, 50))  # Visual flash
                 
                 # FINE TUNING OFFSET (Numpad 4/6)
                 elif event.key == pygame.K_KP4:
-                    # Sposta griglia a sinistra (anticipa beat) -> Diminuisce Offset
-                    offset -= 0.01 # -10ms
+                    # Shift grid left (anticipate beat) -> Decrease Offset
+                    offset -= 0.01  # -10ms
                     is_calibrated = True
-                    
+
                 elif event.key == pygame.K_KP6:
-                    # Sposta griglia a destra (ritarda beat) -> Aumenta Offset
-                    offset += 0.01 # +10ms
+                    # Shift grid right (delay beat) -> Increase Offset
+                    offset += 0.01  # +10ms
                     is_calibrated = True
                     
                 # BPM DOUBLING/HALVING (Numpad 8/2)
                 elif event.key == pygame.K_KP8:
-                    # Raddoppia BPM (Double Time)
-                    # Nota: Offset rimane valido temporalmente, ma cambia il beat index
+                    # Double BPM (Double Time)
+                    # Note: Offset remains temporally valid, but beat index changes
                     bpm *= 2.0
-                    print(f"BPM Raddoppiato: {bpm:.2f}")
-                    
+                    print(f"BPM Doubled: {bpm:.2f}")
+
                 elif event.key == pygame.K_KP2:
-                    # Dimezza BPM (Half Time)
+                    # Halve BPM (Half Time)
                     bpm /= 2.0
-                    print(f"BPM Dimezzato: {bpm:.2f}")
+                    print(f"BPM Halved: {bpm:.2f}")
 
                 # Volume Controls
                 elif pygame.K_0 <= event.key <= pygame.K_9:
@@ -527,9 +527,9 @@ def main():
                     pygame.mixer.music.play(start=new_pos)
                     playback_offset = new_pos
 
-        # Disegno Interfaccia
+        # Draw Interface
         screen.fill((0, 0, 0))
-        
+
         # Info Text
         y_pos = 20
         text_surf = font.render(f"File: {selected_mp3}", True, (255, 255, 255))
@@ -541,7 +541,7 @@ def main():
         y_pos += 40
         
         status_color = (0, 255, 0) if is_calibrated else (255, 0, 0)
-        status_txt = f"Offset: {offset:.6f} s" if is_calibrated else "Offset: NON CALIBRATO"
+        status_txt = f"Offset: {offset:.6f} s" if is_calibrated else "Offset: NOT CALIBRATED"
         text_surf = font.render(status_txt, True, status_color)
         screen.blit(text_surf, (20, y_pos))
         y_pos += 40
@@ -559,9 +559,9 @@ def main():
             
         current_str = format_time(current_time)
         total_str = format_time(duration)
-        time_txt = f"Tempo: {current_str} / {total_str}"
+        time_txt = f"Time: {current_str} / {total_str}"
         
-        text_surf = font.render(time_txt, True, (0, 200, 255)) # Cyan/Blue
+        text_surf = font.render(time_txt, True, (0, 200, 255))  # Cyan/Blue
         screen.blit(text_surf, (20, y_pos))
         y_pos += 60
         
@@ -570,34 +570,34 @@ def main():
             screen.blit(t, (20, y_pos))
             y_pos += 25
             
-        # Metronomo Logic
+        # Metronome Logic
         if bpm > 0:
             spb = 60.0 / bpm
-            
-            effective_time = current_time 
-            
+
+            effective_time = current_time
+
             # Formula SM: Time = Offset + Beat * SPB
             # Beat = (Time - Offset) / SPB
             beat_exact = (effective_time - offset) / spb
             beat_int = int(beat_exact)
-            
-            # Se è scattato un nuovo beat
+
+            # If a new beat triggered
             if beat_int > last_beat_time:
-                # Determina se è un downbeat (inizio misura 4/4)
+                # Determine if it's a downbeat (start of 4/4 measure)
                 is_downbeat = (beat_int % 4) == 0
-                
+
                 if is_calibrated:
-                    # SOLO se calibrato differenziamo il suono
+                    # ONLY if calibrated we differentiate the sound
                     if is_downbeat:
                         down_beep_sound.play()
-                        pygame.draw.circle(screen, (0, 255, 255), (500, 50), 20) # Visual Flash Cyan
+                        pygame.draw.circle(screen, (0, 255, 255), (500, 50), 20)  # Visual Flash Cyan
                     else:
                         beep_sound.play()
-                        pygame.draw.circle(screen, (100, 100, 100), (500, 50), 15) # Grey
+                        pygame.draw.circle(screen, (100, 100, 100), (500, 50), 15)  # Grey
                 else:
-                    # Se NON calibrato, suona sempre uguale (beep standard)
+                    # If NOT calibrated, always sounds the same (standard beep)
                     beep_sound.play()
-                    pygame.draw.circle(screen, (100, 100, 100), (500, 50), 15) # Grey
+                    pygame.draw.circle(screen, (100, 100, 100), (500, 50), 15)  # Grey
                 
                 last_beat_time = beat_int
 

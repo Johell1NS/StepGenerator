@@ -56,14 +56,14 @@ def download_audio(url, output_path):
         print(f"FFmpeg path detected: {ffmpeg_location}")
         # Verify if it seems valid
         if not os.path.exists(ffmpeg_location):
-             print(f"⚠️  Attenzione: Il percorso specificato per FFmpeg non esiste: {ffmpeg_location}")
+             print(f"⚠️  Warning: The specified FFmpeg path does not exist: {ffmpeg_location}")
     else:
         print("FFmpeg path not found in path.txt, relying on system PATH...")
         if not shutil.which("ffmpeg"):
-            print("\n❌ ERRORE CRITICO: FFmpeg non trovato nel sistema né in path.txt!")
-            print("Per scaricare l'audio è necessario FFmpeg.")
-            print("1. Scaricalo da https://ffmpeg.org/download.html")
-            print("2. Inserisci il percorso della cartella 'bin' in path.txt (o aggiungilo al PATH di sistema)")
+            print("\n❌ CRITICAL ERROR: FFmpeg not found in system or path.txt!")
+            print("FFmpeg is required to download audio.")
+            print("1. Download it from https://ffmpeg.org/download.html")
+            print("2. Add the 'bin' folder path to path.txt (or to your system PATH)")
             raise Exception("FFmpeg not found")
 
     ydl_opts = {
@@ -100,12 +100,12 @@ def main():
     print(f"Target URL: {url}")
     
     # 1. Ask for details
-    print("\nInserisci i dettagli per rinominare il file:")
-    song_name = get_user_input("Nome Canzone: ")
-    artist_name = get_user_input("Nome Artista: ")
-    
+    print("\nEnter details to rename the file:")
+    song_name = get_user_input("Song Name: ")
+    artist_name = get_user_input("Artist Name: ")
+
     if not song_name or not artist_name:
-        print("Errore: Nome Canzone e Nome Artista sono obbligatori.")
+        print("Error: Song Name and Artist Name are required.")
         return
 
     full_name = f"{song_name} - {artist_name}"
@@ -120,7 +120,7 @@ def main():
     
     try:
         # Download
-        print("\nAvvio download e conversione...")
+        print("\nStarting download and conversion...")
         downloaded_file = download_audio(url, song_folder)
         
         # Rename
@@ -133,9 +133,9 @@ def main():
                 if os.path.exists(final_mp3_path):
                     os.remove(final_mp3_path)
                 os.rename(downloaded_file, final_mp3_path)
-            print(f"\n✅ File salvato: {final_mp3_path}")
+            print(f"\n✅ File saved: {final_mp3_path}")
         else:
-            print(f"\n❌ Errore: File scaricato non trovato: {downloaded_file}")
+            print(f"\n❌ Error: Downloaded file not found: {downloaded_file}")
             return
 
         # 2. Start "usual process" (Open in ArrowVortex)
@@ -143,14 +143,14 @@ def main():
         script_path = os.path.join(SCRIPT_DIR, "open_in_arrowvortex.py")
         
         if os.path.exists(script_path):
-            print("\nAvvio processo ArrowVortex...")
+            print("\nStarting ArrowVortex process...")
             # Call with the new file path
             subprocess.run([sys.executable, script_path, final_mp3_path])
         else:
-            print(f"Errore: {script_path} non trovato.")
+            print(f"Error: {script_path} not found.")
 
     except Exception as e:
-        print(f"\n❌ Errore durante il processo: {e}")
+        print(f"\n❌ Error during process: {e}")
         # Clean up if empty folder
         if os.path.exists(song_folder) and not os.listdir(song_folder):
             os.rmdir(song_folder)

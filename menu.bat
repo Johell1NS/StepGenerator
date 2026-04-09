@@ -10,24 +10,24 @@ echo ============================================================
 echo   STEPMANIA CHART GENERATOR - ArrowVortex Workflow
 echo ============================================================
 echo.
-echo   1. APRI IN ARROWVORTEX
-echo      (Apre l'MP3 o l'.sm selezionato direttamente nel tool)
+echo   1. OPEN IN ARROWVORTEX
+echo      (Opens the selected MP3 or .sm directly in the tool)
 echo.
-echo   2. RIGENERA GRAFICO (VELOCE)
-echo      (Riprocessa un grafico esistente usando i dati salvati)
+echo   2. REGENERATE CHART (FAST)
+echo      (Reprocesses an existing chart using saved data)
 echo.
-echo   3. MODIFICA DIFFICOLTA
-echo      (Aumenta/Diminuisce difficolta +/- 20%% preservando Holds)
+echo   3. CHANGE DIFFICULTY
+echo      (Increase/Decrease difficulty +/- 20%% preserving Holds)
 echo.
 echo   4. SUPPORT ME
 echo      (Support the project development)
 echo.
-echo   9. Esci
+echo   9. Exit
 echo.
 echo ============================================================
 echo.
 
-set /p choice="Seleziona opzione, o inserisci un URL YouTube: "
+set /p choice="Select an option, or paste a YouTube URL: "
 
 echo !choice! | findstr /C:"http" >nul
 if !errorlevel!==0 goto YOUTUBE_DL
@@ -39,7 +39,7 @@ if "!choice!"=="4" goto SUPPORT
 if "!choice!"=="9" goto EXIT
 
 echo.
-echo Scelta non valida!
+echo Invalid choice!
 timeout /t 2 >nul
 goto MENU
 
@@ -47,7 +47,7 @@ goto MENU
 cls
 echo.
 echo ============================================================
-echo   1. APRI IN ARROWVORTEX
+echo   1. OPEN IN ARROWVORTEX
 echo ============================================================
 echo.
 call venv\Scripts\activate.bat
@@ -59,7 +59,7 @@ goto MENU
 cls
 echo.
 echo ============================================================
-echo   2. RIGENERA GRAFICO (VELOCE)
+echo   2. REGENERATE CHART (FAST)
 echo ============================================================
 echo.
 call venv\Scripts\activate.bat
@@ -71,7 +71,7 @@ goto MENU
 cls
 echo.
 echo ============================================================
-echo   3. MODIFICA DIFFICOLTA
+echo   3. CHANGE DIFFICULTY
 echo ============================================================
 echo.
 call venv\Scripts\activate.bat
@@ -94,7 +94,7 @@ goto MENU
 cls
 echo.
 echo ============================================================
-echo   SCARICAMENTO DA YOUTUBE
+echo   YOUTUBE DOWNLOAD
 echo ============================================================
 echo.
 call venv\Scripts\activate.bat

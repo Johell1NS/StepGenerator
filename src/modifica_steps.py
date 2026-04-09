@@ -8,7 +8,7 @@ import numpy as np
 import glob
 import traceback
 
-# Configurazione Colori
+# Color Configuration
 class Colors:
     HEADER = '\033[95m'
     BLUE = '\033[94m'
@@ -23,12 +23,12 @@ def load_json(path):
         with open(path, 'r', encoding='utf-8') as f:
             return json.load(f)
     except Exception as e:
-        print(f"{Colors.FAIL}Errore lettura JSON {path}: {e}{Colors.ENDC}")
+        print(f"{Colors.FAIL}JSON read error {path}: {e}{Colors.ENDC}")
         return None
 
 def get_energy_at_beat(beat_idx, analysis_data):
     """
-    Calcola l'energia (Onset Strength) in un determinato beat (anche frazionario).
+    Calculates energy (Onset Strength) at a given beat (including fractional).
     """
     if not analysis_data or 'raw_features' not in analysis_data:
         return 0.0
@@ -108,19 +108,19 @@ class StepModifier:
         entries = self.find_valid_songs()
         
         if not entries:
-            print(f"{Colors.FAIL}Nessuna canzone valida trovata (SM + JSON richiesti).{Colors.ENDC}")
+            print(f"{Colors.FAIL}No valid song found (SM + JSON required).{Colors.ENDC}")
             return None
 
-        print(f"\n{Colors.HEADER}--- SELEZIONA CANZONE DA MODIFICARE ---{Colors.ENDC}")
+        print(f"\n{Colors.HEADER}--- SELECT SONG TO MODIFY ---{Colors.ENDC}")
         for i, entry in enumerate(entries):
             folder_name = os.path.basename(entry['folder'])
             print(f"{i+1}. [{folder_name}] {entry['sm_file']}")
             
         print("-" * 40)
-        print("0. Esci")
+        print("0. Exit")
 
         try:
-            choice = int(input(f"\n{Colors.BLUE}Scelta: {Colors.ENDC}"))
+            choice = int(input(f"\n{Colors.BLUE}Choice: {Colors.ENDC}"))
             if choice == 0: return None
             if 1 <= choice <= len(entries):
                 return entries[choice - 1]
@@ -130,8 +130,8 @@ class StepModifier:
 
     def parse_charts_metadata(self, sm_path):
         """
-        Estrae i metadati di tutte le chart nel file SM.
-        Restituisce una lista di oggetti chart.
+        Extracts metadata for all charts in the SM file.
+        Returns a list of chart objects.
         """
         with open(sm_path, 'r', encoding='utf-8') as f:
             content = f.read()
@@ -196,27 +196,27 @@ class StepModifier:
 
     def select_difficulty_menu(self, charts):
         if not charts:
-            print("Nessuna difficoltà trovata nel file SM.")
+            print("No difficulty found in SM file.")
             return None
 
-        print(f"\n{Colors.HEADER}--- SELEZIONA DIFFICOLTÀ ---{Colors.ENDC}")
+        print(f"\n{Colors.HEADER}--- SELECT DIFFICULTY ---{Colors.ENDC}")
         valid_charts = []
         
         for i, c in enumerate(charts):
-            # Filtra solo dance-single per sicurezza?
+            # Filter dance-single only for safety?
             if "dance-single" in c['type']:
                 print(f"{len(valid_charts)+1}. {c['difficulty']} (Meter: {c['meter']}) - {c['description']}")
                 valid_charts.append(c)
         
         if not valid_charts:
-            print("Nessuna chart 'dance-single' trovata.")
+            print("No 'dance-single' chart found.")
             return None
-            
+
         print("-" * 40)
-        print("0. Annulla")
-        
+        print("0. Cancel")
+
         try:
-            choice = int(input(f"\n{Colors.BLUE}Scelta: {Colors.ENDC}"))
+            choice = int(input(f"\n{Colors.BLUE}Choice: {Colors.ENDC}"))
             if choice == 0: return None
             if 1 <= choice <= len(valid_charts):
                 return valid_charts[choice - 1]
@@ -236,12 +236,12 @@ class StepModifier:
         return measures
 
     def modify_steps(self, measures, analysis_data, is_increase, percentage):
-        print(f"\n{Colors.BLUE}🔨 Elaborazione steps... (Mode: {'Increase' if is_increase else 'Decrease'} {int(percentage*100)}%){Colors.ENDC}")
-        
-        # Mappatura Beat Globale e Analisi
+        print(f"\n{Colors.BLUE}🔨 Processing steps... (Mode: {'Increase' if is_increase else 'Decrease'} {int(percentage*100)}%){Colors.ENDC}")
+
+        # Global Beat Mapping and Analysis
         flat_slots = [] 
         
-        # Simulazione Holds Globale
+        # Global Hold Simulation
         active_holds = [False] * 4 
         current_taps = 0
         
@@ -259,28 +259,28 @@ class StepModifier:
                 
                 # Check Holds
                 active_holds_count_before = sum(1 for x in active_holds if x)
-                
+
                 row_has_tap = False
                 row_has_hold_head = False
                 row_has_hold_tail = False
-                
+
                 for c in range(4):
                     char = cols[c]
                     if char == '1': row_has_tap = True
-                    elif char == '2': 
+                    elif char == '2':
                         active_holds[c] = True
                         row_has_hold_head = True
-                    elif char == '3': 
+                    elif char == '3':
                         active_holds[c] = False
                         row_has_hold_tail = True
-                    elif char == '4': 
-                        active_holds[c] = True # Roll as hold
+                    elif char == '4':
+                        active_holds[c] = True  # Roll as hold
                         row_has_hold_head = True
 
-                # Conteggio input attivi in QUESTO momento (inclusi quelli appena iniziati)
+                # Count active inputs at THIS moment (including newly started ones)
                 active_holds_count_now = sum(1 for x in active_holds if x)
                 
-                # Quanti tap ci sono in questa riga?
+                # How many taps in this row?
                 taps_in_row = cols.count('1')
                 current_taps += taps_in_row
                 
@@ -293,27 +293,27 @@ class StepModifier:
                     'row_has_tap': row_has_tap,
                     'row_has_hold_head': row_has_hold_head,
                     'row_has_hold_tail': row_has_hold_tail,
-                    'active_holds_count': active_holds_count_before, # Holds attivi PROVENIENTI da righe prima
+                    'active_holds_count': active_holds_count_before, # Holds active from PREVIOUS rows
                     'taps_count': taps_in_row
                 }
                 flat_slots.append(slot_info)
 
         target_count = int(current_taps * percentage)
-        print(f"   Note attuali (Tap): {current_taps}")
-        print(f"   Target variazione: {target_count} note")
+        print(f"   Current notes (Tap): {current_taps}")
+        print(f"   Target change: {target_count} notes")
         
         changes_made = 0
         
         if is_increase:
             # --- INCREASE LOGIC ---
-            # Cerca righe dove possiamo aggiungere note rispettando:
-            # 1. Max 2 input totali (hold attivi + tap)
-            # 2. Non aggiungere su teste/code di hold (per semplicità)
-            
-            # --- RE-IMPLEMENTAZIONE PIÙ SICURA PER INCREASE ---
-            # Dobbiamo rifare il pass active_holds tracciando le colonne esatte
-            
-            # Reset simulazione
+            # Look for rows where we can add notes respecting:
+            # 1. Max 2 total inputs (active holds + taps)
+            # 2. Don't add on hold heads/tails (for simplicity)
+
+            # --- SAFER RE-IMPLEMENTATION FOR INCREASE ---
+            # We need to redo the active_holds pass tracking exact columns
+
+            # Reset simulation
             active_holds_cols = [False] * 4
             refined_slots = []
             
@@ -327,7 +327,7 @@ class StepModifier:
                     if len(row_clean) < 4: row_clean = row_clean.ljust(4, '0')
                     cols = list(row_clean)
                     
-                    # Snapshot hold attivi PRIMA di questa riga
+                    # Snapshot of active holds BEFORE this row
                     holds_here = list(active_holds_cols)
                     
                     # Update holds logic
@@ -339,9 +339,9 @@ class StepModifier:
                         
                         if char in ['2','3','4']: row_is_complex = True
 
-                    # Calcola quanti input totali avremmo se non tocchiamo nulla
-                    # Input = Taps ('1') + Holds Attivi ('True' in holds_here)
-                    # Nota: se c'è un '1' su una colonna con hold attivo? (Impossible in valid SM usually)
+                    # Calculate total inputs if we don't change anything
+                    # Input = Taps ('1') + Active Holds ('True' in holds_here)
+                    # Note: if there's a '1' on a column with active hold? (Impossible in valid SM usually)
                     
                     taps = cols.count('1')
                     active_h_count = sum(1 for x in holds_here if x)
@@ -351,23 +351,23 @@ class StepModifier:
                         'cols': cols,
                         'energy': energy,
                         'total_inputs': total_inputs,
-                        'holds_mask': holds_here, # Quali colonne sono occupate da hold passanti
-                        'row_is_complex': row_is_complex # Se ha teste o code
+                        'holds_mask': holds_here, # Which columns are occupied by passing holds
+                        'row_is_complex': row_is_complex # If it has heads or tails
                     })
             
-            # Filtra candidati
+            # Filter candidates
             candidates = [s for s in refined_slots if not s['row_is_complex'] and s['total_inputs'] < 2]
             candidates.sort(key=lambda x: x['energy'], reverse=True)
-            
+
             for s in candidates:
                 if changes_made >= target_count: break
-                
-                # Cerca colonna libera
-                # Libera = è '0' AND non è in holds_mask
+
+                # Look for free column
+                # Free = is '0' AND not in holds_mask
                 free_indices = [i for i, c in enumerate(s['cols']) if c == '0' and not s['holds_mask'][i]]
-                
+
                 if free_indices:
-                    # Scegli a caso
+                    # Choose randomly
                     idx = random.choice(free_indices)
                     s['cols'][idx] = '1'
                     changes_made += 1
@@ -389,20 +389,20 @@ class StepModifier:
 
         else:
             # --- DECREASE LOGIC ---
-            # Rimuovi Tap '1' più deboli che non sono su righe complesse (hold heads/tails)
-            
+            # Remove weakest Tap '1' that are not on complex rows (hold heads/tails)
+
             potential_remove = [
                 s for s in flat_slots
                 if s['row_has_tap'] and not s['row_has_hold_head'] and not s['row_has_hold_tail']
             ]
-            
-            # Ordina Energia CRESCENTE (Deboli prima)
+
+            # Sort by ASCENDING energy (weakest first)
             potential_remove.sort(key=lambda x: x['energy'])
             
             to_remove = potential_remove[:target_count]
             
             for s in to_remove:
-                # Rimuovi tutti i tap in questa riga
+                # Remove all taps in this row
                 for c in range(4):
                     if s['cols'][c] == '1':
                         s['cols'][c] = '0'
@@ -424,17 +424,17 @@ class StepModifier:
             return final_measures
 
     def save_chart_overwrite(self, sm_path, original_content, chart_metadata, new_measures):
-        print(f"Salvataggio (SOVRASCRITTURA) su: {sm_path}")
-        print(f"Modifico chart: {chart_metadata['difficulty']} ({chart_metadata['description']})")
+        print(f"Saving (OVERWRITE) to: {sm_path}")
+        print(f"Modifying chart: {chart_metadata['difficulty']} ({chart_metadata['description']})")
         
-        # 1. Ricostruisci il blocco note data
+        # 1. Reconstruct note data block
         new_data_str = ""
         for i, m in enumerate(new_measures):
             new_data_str += "\n".join(m)
             if i < len(new_measures) - 1:
                 new_data_str += ",\n"
         
-        # 2. Sostituisci SOLO la parte di note data nel contenuto originale
+        # 2. Replace ONLY the note data part in the original content
         start = chart_metadata['note_data_start_abs']
         end = chart_metadata['note_data_end_abs']
         
@@ -443,51 +443,51 @@ class StepModifier:
         with open(sm_path, 'w', encoding='utf-8') as f:
             f.write(final_content)
             
-        print(f"{Colors.GREEN}✅ File aggiornato con successo!{Colors.ENDC}")
+        print(f"{Colors.GREEN}✅ File updated successfully!{Colors.ENDC}")
 
     def run(self):
-        # 1. Seleziona Canzone
+        # 1. Select Song
         entry = self.select_song_menu()
         if not entry: return
-        
+
         sm_path = entry['sm_path']
         json_path = entry['json_path']
-        
-        # 2. Carica Analisi
+
+        # 2. Load Analysis
         analysis_data = load_json(json_path)
         if not analysis_data: return
-        
-        # 3. Parse SM per trovare difficoltà
+
+        # 3. Parse SM to find difficulty
         full_content, charts = self.parse_charts_metadata(sm_path)
-        
-        # 4. Seleziona Difficoltà
+
+        # 4. Select Difficulty
         selected_chart = self.select_difficulty_menu(charts)
         if not selected_chart: return
-        
-        # 5. Chiedi Azione (+/-)
-        print(f"\n{Colors.HEADER}--- MODIFICA: {selected_chart['difficulty']} ---{Colors.ENDC}")
-        print("1. Aumenta Difficoltà (+20% frecce)")
-        print("2. Diminuisci Difficoltà (-20% frecce)")
-        print("0. Annulla")
-        
+
+        # 5. Ask Action (+/-)
+        print(f"\n{Colors.HEADER}--- MODIFY: {selected_chart['difficulty']} ---{Colors.ENDC}")
+        print("1. Increase Difficulty (+20% arrows)")
+        print("2. Decrease Difficulty (-20% arrows)")
+        print("0. Cancel")
+
         try:
-            choice = input(f"\n{Colors.BLUE}Scelta: {Colors.ENDC}")
+            choice = input(f"\n{Colors.BLUE}Choice: {Colors.ENDC}")
             if choice == '0': return
             if choice not in ['1', '2']:
-                print("Scelta non valida.")
+                print("Invalid choice.")
                 return
-            
+
             is_increase = (choice == '1')
-            
-            # 6. Elabora
+
+            # 6. Process
             measures = self.parse_measures_from_string(selected_chart['note_data'])
             new_measures = self.modify_steps(measures, analysis_data, is_increase, 0.20)
-            
-            # 7. Salva
+
+            # 7. Save
             self.save_chart_overwrite(sm_path, full_content, selected_chart, new_measures)
-            
+
         except Exception as e:
-            print(f"{Colors.FAIL}Errore: {e}{Colors.ENDC}")
+            print(f"{Colors.FAIL}Error: {e}{Colors.ENDC}")
             traceback.print_exc()
 
 if __name__ == "__main__":
