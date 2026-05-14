@@ -1,8 +1,6 @@
 import json
 import logging
-from pathlib import Path
 import re
-import math
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -58,7 +56,7 @@ def refine_chart_intro_end(sm_file_path, analysis_data_path="analysis_data.json"
             fade_out_start_beat = beat_idx
             break
             
-    logger.info(f"Intro/End Analysis:")
+    logger.info("Intro/End Analysis:")
     logger.info(f"  First Active Beat: {first_active_beat}")
     logger.info(f"  Fade Out Start:    {fade_out_start_beat}")
     logger.info(f"  Last Active Beat:  {last_active_beat}")

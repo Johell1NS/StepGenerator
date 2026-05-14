@@ -96,7 +96,7 @@ def main():
     raw_url = sys.argv[1]
     url = clean_youtube_url(raw_url)
     
-    print(f"\n--- YouTube Audio Downloader ---")
+    print("\n--- YouTube Audio Downloader ---")
     print(f"Target URL: {url}")
     
     # 1. Ask for details

@@ -30,7 +30,7 @@ class ChartRefinerMute:
         self.analysis_file = Path(analysis_file)
         
     def run(self):
-        logger.info(f"🔇 Starting Mute Refiner...")
+        logger.info("🔇 Starting Mute Refiner...")
         
         # 1. Load Analysis
         try:
@@ -153,8 +153,7 @@ class ChartRefinerMute:
                 measures_raw = clean_data_str.split(',')
                 cleaned_measures = []
                 
-                total_measures = len(measures_raw)
-                
+
                 for m_idx, m_str in enumerate(measures_raw):
                     rows = [r.strip() for r in m_str.strip().split('\n') if r.strip()]
                     num_rows = len(rows)

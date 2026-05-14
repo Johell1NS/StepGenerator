@@ -23,7 +23,7 @@ def main():
     directory = os.path.dirname(sm_path)
     sm_filename = os.path.basename(sm_path)
     
-    print(f"--- Running Final Actions ---")
+    print("--- Running Final Actions ---")
     print(f"Analyzing file: {sm_filename}")
 
     # 1. Find the MP3 filename by reading the .sm file

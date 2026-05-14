@@ -1,11 +1,8 @@
 import os
-import sys
 import json
 import re
 import random
-import subprocess
 import numpy as np
-import glob
 import traceback
 
 # Color Configuration
@@ -174,7 +171,7 @@ class StepModifier:
             # Se ci sono più parti, desc potrebbe contenere ':'
             if len(parts) >= 5:
                 chart_type = parts[0]
-                radar = parts[-1]
+                _ = parts[-1]
                 meter = parts[-2]
                 difficulty = parts[-3]
                 # Descrizione è tutto ciò che sta in mezzo
@@ -278,7 +275,6 @@ class StepModifier:
                         row_has_hold_head = True
 
                 # Count active inputs at THIS moment (including newly started ones)
-                active_holds_count_now = sum(1 for x in active_holds if x)
                 
                 # How many taps in this row?
                 taps_in_row = cols.count('1')

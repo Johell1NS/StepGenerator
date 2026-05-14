@@ -394,8 +394,8 @@ def validate_image_url(url, min_w=256, min_h=256):
         except Exception:
             pass
         return True, w, h
-    except Exception as e:
-        # print(f"DEBUG: Validation error for {url}: {e}")
+    except Exception:
+        # print(f"DEBUG: Validation error")
         return False, 0, 0
 
 def wikipedia_valid_thumb(query, min_w=256, min_h=256):

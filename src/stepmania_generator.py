@@ -268,7 +268,7 @@ def main():
         try:
             if float(curr_sample) <= 0.001:
                  header = set_tag_val("SAMPLESTART", "20.000", header)
-                 print(f"      🔹 SampleStart fixed to: 20.000")
+                 print("      🔹 SampleStart fixed to: 20.000")
         except:
              pass
 
@@ -277,7 +277,7 @@ def main():
         try:
             if not curr_len or float(curr_len) <= 0.001:
                  header = set_tag_val("SAMPLELENGTH", "15.000", header)
-                 print(f"      🔹 SampleLength fixed to: 15.000")
+                 print("      🔹 SampleLength fixed to: 15.000")
         except:
              pass
 

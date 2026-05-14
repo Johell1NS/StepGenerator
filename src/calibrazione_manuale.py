@@ -1,7 +1,5 @@
 import os
-import sys
 import time
-import json
 import pygame
 import librosa
 import numpy as np
@@ -138,17 +136,17 @@ def load_audio_analysis(file_path):
     print(f"{Colors.BLUE}⏳ Advanced BPM Analysis (Full Song + Phase Check) in progress...{Colors.ENDC}")
     try:
         # 1. Audio Loading
-        print(f"   Full audio loaded (22050Hz)...")
+        print("   Full audio loaded (22050Hz)...")
         y, sr = librosa.load(file_path, sr=22050)
         total_duration = librosa.get_duration(y=y, sr=sr)
 
         # 2. Onset Envelope
         hop_len = 128
-        print(f"   Computing Onset Envelope...")
+        print("   Computing Onset Envelope...")
         onset_env = librosa.onset.onset_strength(y=y, sr=sr, hop_length=hop_len)
 
         # 3. Generate Candidates
-        print(f"   Generating BPM Candidates (FFT + Autocorr)...")
+        print("   Generating BPM Candidates (FFT + Autocorr)...")
         # We reduce base n_candidates to be more selective
         fft_candidates = get_top_bpm_candidates_fft(onset_env, sr, hop_len, n_candidates=4)
         ac_candidates = get_candidates_autocorr(onset_env, sr, hop_len, n_candidates=4)
@@ -165,7 +163,6 @@ def load_audio_analysis(file_path):
             
         # Generate Variants (with score penalty)
         final_pool = []
-        seen_bpms = []
 
         def add_candidate(bpm, score):
             if not (40 <= bpm <= 250): return
@@ -395,7 +392,6 @@ def main():
     clock = pygame.time.Clock()
     
     # Playback Time Management
-    music_start_time = time.time()
     playback_offset = 0.0  # Temporal offset due to seeks (forward/backward)
     
     # Volume Control
