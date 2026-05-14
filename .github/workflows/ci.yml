@@ -1,0 +1,49 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          if [ -f requirements.txt ]; then
+            pip install -r requirements.txt
+          fi
+
+      - name: Lint with pyflakes
+        run: |
+          pip install pyflakes
+          pyflakes src/*.py
+
+      - name: Check Python syntax
+        run: |
+          python -m py_compile src/*.py
+
+      - name: Verify project structure
+        run: |
+          echo "Checking project structure..."
+          for dir in "1 easy" "2 medium" "3 hard" "songs" "src"; do
+            if [ -d "$dir" ]; then
+              echo "OK $dir/"
+            else
+              echo "WARN $dir/ not found (non-critical)"
+            fi
+          done
+          echo "README: $([ -f README.md ] && echo OK || echo MISSING)"
+          echo "LICENSE: $([ -f LICENSE ] && echo OK || echo MISSING)"
+          echo "requirements.txt: $([ -f requirements.txt ] && echo OK || echo MISSING)"
