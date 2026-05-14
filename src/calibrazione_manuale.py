@@ -1,5 +1,4 @@
 import os
-import time
 import pygame
 import librosa
 import numpy as np
