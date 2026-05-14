@@ -1,6 +1,8 @@
 # StepMania/OutFox Semi-Auto Stepper
 
-A Python prototype for semi-automatic step creation (Dance-Single mode) for StepMania, Project OutFox, and similar programs.
+[![CI](https://github.com/Johell1NS/StepGenerator/actions/workflows/ci.yml/badge.svg)](https://github.com/Johell1NS/StepGenerator/actions/workflows/ci.yml)
+
+A Python prototype for semi-automatic step creation
 
 https://github.com/user-attachments/assets/2104635c-5360-45b3-b809-677a149d0cf4
 
